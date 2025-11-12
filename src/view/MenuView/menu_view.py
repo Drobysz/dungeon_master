@@ -1,6 +1,7 @@
 # src/view/menu_view.py
 # from __future__ import annotations
 from .props import *
+from .classes import *
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from game_engine.fltk import *
@@ -18,7 +19,7 @@ def list_levels() -> List[Path]:
     files.sort(key=lambda p: p.name.lower())
     return files
 
-def point_in_rect(x: int, y: int, r: Tuple[int, int, int, int]) -> bool:
+def point_in_rect(x: int, y: int, r: Coord) -> bool:
     rx, ry, rw, rh = r
     return rx <= x <= rx + rw and ry <= y <= ry + rh
 
@@ -28,14 +29,13 @@ class MenuView:
 		self.levels: List[Path] = list_levels()
 		self.sel: int = 0
 		self.scroll: int = 0
-		self.options: Dict[str, bool] = {
+		self.options: GameProps = {
 			"treasures": False,
 			"dragons_move": False,
 			"save_enabled": False,
 		}
-		# клик-мапа (обновляется при каждом draw)
-		self.hit: Dict[str, Tuple[int, int, int, int]] = {}
-		self.hit_items: List[Tuple[int, Tuple[int, int, int, int]]] = []  # (index, rect)
+		self.hit: Hitbox = {}
+		self.hit_items: ListHitBox = []
 
 	# --------------------------- Rendering -------------------------------------
 	def render(self) -> None:
@@ -46,7 +46,12 @@ class MenuView:
 		rectangle(0, 0, W, H, remplissage=BG, couleur=BG)
 
 		# Title
-		texte(PADDING, PADDING, "WALL IS YOU — MENU", couleur=FG, taille=TITLE_SIZE)
+		texte(
+      		PADDING, PADDING,
+        	"WALL IS YOU — MENU",
+         	couleur=FG,
+          	taille=TITLE_SIZE
+        )
 
 		# Level list
 		list_x = PADDING
@@ -55,9 +60,21 @@ class MenuView:
 		list_h = H - list_y - (PADDING + 160)
 
 		# Listbox frame
-		rectangle(list_x - 8, list_y - 8, list_x + list_w + 8, list_y + list_h + 8, couleur=MUTED)
+		rectangle(
+      		list_x - 8,
+        	list_y - 8,
+         	list_x + list_w + 8,
+          	list_y + list_h + 8,
+           	couleur=MUTED
+        )
 		# Listbox background
-		rectangle(list_x, list_y, list_x + list_w, list_y + list_h, remplissage="#14161d", couleur="#242936")
+		rectangle(
+      		list_x, list_y,
+        	list_x + list_w,
+         	list_y + list_h,
+          	remplissage="#14161d",
+           	couleur="#242936"
+        )
 
 		# rendering of elements + scroll
 		self.hit_items.clear()
@@ -72,10 +89,20 @@ class MenuView:
 			r = (list_x, item_y, list_w, LIST_ITEM_H)
 			# подложка для выбранного
 			if idx == self.sel:
-				rectangle(r[0], r[1], r[0]+r[2], r[1]+r[3], remplissage="#223048", couleur=ACCENT)
+				rectangle(
+        			r[0], r[1],
+           			r[0]+r[2], r[1]+r[3],
+              		remplissage="#223048",
+                	couleur=ACCENT
+                )
 			# название
 			fname = self.levels[idx].name.split('.')[0]
-			texte(r[0] + 10, r[1] + 7, fname, couleur=FG, taille=TEXT_SIZE)
+			texte(
+       			r[0] + 10, r[1] + 7,
+          		fname,
+            	couleur=FG,
+             	taille=TEXT_SIZE
+            )
 			# сохранить кликабельную область
 			self.hit_items.append((idx, r))
 
@@ -84,11 +111,11 @@ class MenuView:
 		btn_y = list_y
 
 		self.hit["btn_play"] = (right_x, btn_y, BTN_W, BTN_H)
-		self._button(self.hit["btn_play"], "Play", primary=True)
+		self._button(self.hit["btn_play"], "Play", props="primary")
 
 		btn_y += BTN_H + SPACER
 		self.hit["btn_quit"] = (right_x, btn_y, BTN_W, BTN_H)
-		self._button(self.hit["btn_quit"], "Exit", danger=True)
+		self._button(self.hit["btn_quit"], "Exit", props="danger")
 
 		# options (checkboxes)
 		opt_y = btn_y + BTN_H + SPACER * 3
@@ -104,7 +131,12 @@ class MenuView:
  
 			self.hit[opt_key] = (right_x, opt_y, 22, 22)
 			self._checkbox(self.hit[opt_key], self.options[key])
-			texte(right_x + 30, opt_y - 3, names[id], couleur=FG, taille=TEXT_SIZE)
+			texte(
+       			right_x + 30, opt_y - 3,
+          		names[id],
+            	couleur=FG,
+             	taille=TEXT_SIZE
+            )
 			opt_y += CHECK_H + 6
 
 		# control hints
@@ -115,27 +147,50 @@ class MenuView:
    			"  LMC — cell rotation, Space — move\n"
    			"  R — restart, Esc — menu\n"
 		)
-		texte(PADDING, H - 2*PADDING - 4*HINT_SIZE, hint, couleur=MUTED, taille=HINT_SIZE)
+		texte(PADDING, H - 2 * PADDING - 4 * HINT_SIZE, hint, couleur=MUTED, taille=HINT_SIZE)
 	
 	def reload(self):
 		self.render()
 		mise_a_jour()
 
 	# Button
-	def _button(self, r: Tuple[int,int,int,int], label: str, primary=False, danger=False) -> None:
+	def _button(
+    	self,
+     	r: Coord,
+      	label: str,
+        props: BtnTypes = "default"
+    ) -> None:
+		match props:
+			case "primary":
+				border = ACCENT
+				fill = "#29405f"
+			case "danger":
+				border = DANGER
+				fill = "#3c1e1e"
+			case _:
+				border = "#3a4050"
+				fill = "#1b2230"
+    
 		x, y, w, h = r
-		color = "#243145"
-		border = ACCENT if primary else (DANGER if danger else "#3a4050")
-		fill = "#1b2230" if not primary else "#29405f"
-		if danger:
-			fill = "#3c1e1e"
-		rectangle(x, y, x+w, y+h, remplissage=fill, couleur=border)
+    
+		rectangle(
+      		x, y,
+        	x+w, y+h,
+         	remplissage=fill,
+          	couleur=border
+        )
+  
 		texte(x + 14, y + 10, label, couleur=FG, taille=TEXT_SIZE)
 
 	# Checkbox
-	def _checkbox(self, r: Tuple[int,int,int,int], checked: bool) -> None:
+	def _checkbox(self, r: Coord, checked: bool) -> None:
 		x, y, w, h = r
-		rectangle(x, y, x+w, y+h, remplissage="#10141b", couleur="#3a4050")
+		rectangle(
+      		x, y,
+        	x+w, y+h,
+         	remplissage="#10141b",
+          	couleur="#3a4050"
+        )
 		if checked:
 			# cross
 			ligne(x+4, y+13, x+10, y+h-5, couleur=OK, epaisseur=3)
