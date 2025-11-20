@@ -6,83 +6,119 @@ from load_levels import load_levels
 from model.dungeon import Dungeon
 
 Position = Tuple[int, int]
-Entity = Dict[int, List[int, int]]
+Entity = Dict[str, object]
+Results = Literal["win", "lose", ""]
 
 
 class GameController:
-    """
-    Отвечает за состояние игры:
-    - поле (Dungeon)
-    - герой
-    - драконы
-    - опции (treasures / dragons_move / save и т.п.)
-    """
+    def __init__(s, level_path: Path, options: Dict) -> None:
+        s.level_path: Path = level_path
+        s.options: Dict = options
 
-    def __init__(self, level_path: Path, options: Dict) -> None:
-        self.level_path: Path = level_path
-        self.options: Dict = options
+        s.dungeon: Dungeon | None = None
+        s.hero: Entity | None = None
+        s.dragons: List[Dict] = []
 
-        self.dungeon: Dungeon | None = None
-        self.hero: Entity | None = None
-        self.dragons: List[Dict] = []
+        s.game_over: bool = False
+        s.game_result: Results = ""
+        s.last_path: List[Position] = []
 
-        self.game_over: bool = False
-        self.game_result: Literal["win", "lose", ""] = ""
+        s._load_level()
 
-        self._load_level()
 
-    # -------------------- загрузка / сброс уровня --------------------
+    def _load_level(s) -> None:
+        dungeon, hero, dragons = load_levels(s.level_path)
+        s.dungeon = dungeon
+        s.hero = hero
+        s.dragons = dragons
+        s.game_over = False
+        s.game_result = ""
 
-    def _load_level(self) -> None:
-        """Читает json и наполняет dungeon/hero/dragons."""
-        dungeon, hero, dragons = load_levels(self.level_path)
-        self.dungeon = dungeon
-        self.hero = hero
-        self.dragons = dragons
-        self.game_over = False
-        self.game_result = ""
 
-    def reset(self) -> None:
-        """Перезапустить тот же уровень с нуля."""
-        self._load_level()
+    def reset(s) -> None:
+        s._load_level()
 
-    # -------------------- работа с полем --------------------
 
-    def rotate_cell(self, row: int, col: int) -> None:
-        if self.dungeon is None:
+    def rotate_cell(s, row: int, col: int) -> None:
+        if s.dungeon is None:
             return
 
-        if not self.dungeon.in_bounds(row, col):
+        if not s.dungeon.in_bounds(row, col):
             return
 
-        self.dungeon.rotate_cell(row, col)
+        s.dungeon.rotate_cell(row, col)
 
-    # пример: поворот по координатам пикселей, когда будет GameView
-    def rotate_cell_from_pixel(self, x: int, y: int, cell_size: int) -> None:
-        """
-        Переводит пиксели (x, y) в индекс клетки и вызывает rotate_cell.
-        Удобно использовать в обработчике клика мышью.
-        """
+
+    def rotate_cell_from_pixel(s, x: int, y: int, cell_size: int) -> None:
         row = y // cell_size
         col = x // cell_size
-        self.rotate_cell(row, col)
+        s.rotate_cell(row, col)
 
-    # -------------------- ход / логика игры --------------------
 
-    def end_turn(self) -> None:
-        """
-        Заготовка под ход героя:
-        - построить «намерение»
-        - сделать шаг
-        - проверить встречи с драконами
-        - проставить game_over / game_result
-        Сейчас пустая, заполним на 5-й день.
-        """
-        if self.game_over or self.dungeon is None or self.hero is None:
+    def _compute_intention_path(s, max_steps: int = 1000) -> List[Position]:
+        if s.dungeon is None or s.hero is None:
+            return []
+
+        row, col = s.hero["position"]
+        path: List[Position] = []
+        previous: Position | None = None
+        steps = 0
+
+        while steps < max_steps:
+            next_pos: Position | None = None
+
+            for (nbr_row, nbr_col), _ in s.dungeon.neighbors(row, col):
+                if previous is not None and (nbr_row, nbr_col) == previous:
+                    continue
+                if s.dungeon.are_connected(row, col, nbr_row, nbr_col):
+                    next_pos = (nbr_row, nbr_col)
+                    break
+
+            if next_pos is None:
+                break
+
+            path.append(next_pos)
+            previous = (row, col)
+            row, col = next_pos
+            steps += 1
+
+        return path
+
+
+    def end_turn(s) -> None:
+        if s.game_over or s.dungeon is None or s.hero is None:
             return
 
-        # TODO: логика хода героя и боёв
-        pass
+        path = s._compute_intention_path()
+        s.last_path = path
 
-    def is_over(self) -> bool:
-        return self.game_over
+        hero_lvl = s.hero["level"]
+
+        for step_row, step_col in path:
+            s.hero["position"] = [step_row, step_col]
+
+            dragon_idx = None
+            dragon_lvl = 0
+            for idx, dragon in enumerate(s.dragons):
+                d_row, d_col = dragon["position"]
+                if d_row == step_row and d_col == step_col:
+                    dragon_idx = idx
+                    dragon_lvl = int(dragon["level"])
+                    break
+
+            if dragon_idx is not None:
+                if hero_lvl >= dragon_lvl:
+                    s.hero["level"] = hero_lvl + dragon_lvl
+                    s.dragons.pop(dragon_idx)
+
+                else:
+                    s.game_over = True
+                    s.game_result = "lose"
+                    break
+
+        if not s.game_over and not s.dragons:
+            s.game_over = True
+            s.game_result = "win"
+
+    def is_over(s) -> bool:
+        return s.game_over
