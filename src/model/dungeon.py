@@ -26,26 +26,26 @@ class Dungeon:
 	grid: Grid
 
 	@property
-	def height(self) -> int: return len(self.grid)
+	def h(s) -> int: return len(s.grid)
 	@property
-	def width(self) -> int: return len(self.grid[0])
+	def w(s) -> int: return len(s.grid[0])
 
-	def get_cell(self, row: int, col: int) -> Cell:
-		return self.grid[row][col]
+	def get_cell(s, r: int, c: int) -> Cell:
+		return s.grid[r][c]
 
-	def rotate_cell(self, row: int, col: int) -> None:
-		cell = self.grid[row][col]
+	def rotate_cell(s, r: int, c: int) -> None:
+		cell = s.grid[r][c]
 		cell = cell.rotate()
 
-	def in_bound(self, row: int, col: int) -> bool:
-		return 0 <= row <= self.height and 0 <= col <= self.width
+	def in_bound(s, r: int, c: int) -> bool:
+		return 0 <= r <= s.h and 0 <= c <= s.w
 
-	def neighbors(self, row: int, col: int) -> Iterable[Tuple[Position, str]]:
+	def neighbors(s, r: int, c: int) -> Iterable[Tuple[Position, str]]:
 		for dir, (r_shift, c_shift) in DIRECTIONS.items():
-			n_row = row + r_shift
-			n_col = col + c_shift
-			if self.in_bound(n_row, n_col):
-				yield (n_row, n_col), dir
+			n_r = r + r_shift
+			n_c = c + c_shift
+			if s.in_bound(n_r, n_c):
+				yield (n_r, n_c), dir
     
 	def are_connected(
 		self,
@@ -60,7 +60,7 @@ class Dungeon:
 		shifted_col = n_col - col
   
 		for direction, (shift_row, shift_col) in DIRECTIONS.items():
-			if  (shifted_row, shifted_col) == (shift_row, shift_col):
+			if (shifted_row, shifted_col) == (shift_row, shift_col):
 				cell = self.get_cell(row, col)
 				n_cell = self.get_cell(n_row, n_cell)
 				return cell.has_dir(direction) and n_cell.has_dir(OPPOSITE[direction])
