@@ -1,9 +1,7 @@
-# src/view/menu_view.py
-# from __future__ import annotations
 from .props import *
 from .classes import *
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from game_engine.fltk import *
 
 _THIS = Path(__file__).resolve()
@@ -26,15 +24,15 @@ def point_in_rect(x: int, y: int, r: Coord) -> bool:
 # ------------------------------ MenuView --------------------------------------
 class MenuView:
 	def __init__(self) -> None:
-		self.levels: List[Path] = list_levels()
-		self.sel: int = 0
-		self.scroll: int = 0
-		self.options: GameProps = {
+		self.levels:    List[Path] = list_levels()
+		self.sel:       int = 0
+		self.scroll:    int = 0
+		self.options:   GameProps = {
 			"treasures": False,
 			"dragons_move": False,
 			"save_enabled": False,
 		}
-		self.hit: Hitbox = {}
+		self.hit:       Hitbox = {}
 		self.hit_items: ListHitBox = []
 
 	# --------------------------- Rendering -------------------------------------
@@ -67,6 +65,7 @@ class MenuView:
           	list_y + list_h + 8,
            	couleur=MUTED
         )
+
 		# Listbox background
 		rectangle(
       		list_x, list_y,
@@ -76,18 +75,21 @@ class MenuView:
            	couleur="#242936"
         )
 
-		# rendering of elements + scroll
+		# rendering of levels + scroll
 		self.hit_items.clear()
 		visible_count = max(1, list_h // LIST_ITEM_H)
-		self.scroll = max(0, min(self.scroll, max(0, len(self.levels) - visible_count)))
+		ln_lvls = len(self.levels)
+  
+		out = max(0, ln_lvls - visible_count)
+		self.scroll = max(0, min(self.scroll, out))
 
 		for vis_idx in range(visible_count):
 			idx = self.scroll + vis_idx
-			if idx >= len(self.levels):
+			if idx >= ln_lvls:
 				break
 			item_y = list_y + vis_idx * LIST_ITEM_H
 			r = (list_x, item_y, list_w, LIST_ITEM_H)
-			# подложка для выбранного
+			# the background for the selected
 			if idx == self.sel:
 				rectangle(
         			r[0], r[1],
@@ -95,7 +97,7 @@ class MenuView:
               		remplissage="#223048",
                 	couleur=ACCENT
                 )
-			# название
+			# name
 			fname = self.levels[idx].name.split('.')[0]
 			texte(
        			r[0] + 10, r[1] + 7,
@@ -103,7 +105,7 @@ class MenuView:
             	couleur=FG,
              	taille=TEXT_SIZE
             )
-			# сохранить кликабельную область
+			# save hitbox area
 			self.hit_items.append((idx, r))
 
 		# buttons at the right
@@ -122,7 +124,7 @@ class MenuView:
 		texte(right_x, opt_y - 10, "Options:", couleur=FG, taille=TEXT_SIZE)
 		opt_y += SPACER * 1.5
   
-		keys = ["treasures", "dragons_move", "save_enabled"]
+		keys  = ["treasures", "dragons_move", "save_enabled"]
 		names = ["Treasures", "Dragon moves", "Saving"]
   
 		for id in range(len(keys)):
@@ -148,11 +150,10 @@ class MenuView:
    			"  R — restart, Esc — menu\n"
 		)
 		texte(PADDING, H - 2 * PADDING - 4 * HINT_SIZE, hint, couleur=MUTED, taille=HINT_SIZE)
-	
-	def reload(self):
-		self.render()
+
 		mise_a_jour()
 
+	# --------------------------- Components -------------------------------------
 	# Button
 	def _button(
     	self,
@@ -197,13 +198,7 @@ class MenuView:
 			ligne(x+10, y+h-5, x+w-5, y+5, couleur=OK, epaisseur=3)
 
 	# --------------------------- Event handler ----------------------------------------
-	def handle_event(self, ev, et) -> Optional[Dict]:
-		"""
-		Возвращает:
-		- {"action":"start","level":Path,"options":{...}}
-		- {"action":"quit"}
-		- None — если решений пока нет
-		"""
+	def handle_event(s, ev, et) -> Optional[Dict]:
 		if et is None:
 			return None
 
@@ -212,91 +207,85 @@ class MenuView:
 
 			match key:
 				case "Up" | "KP_Up":
-					self._move_sel(-1)
+					s._move_sel(-1)
 				case "Down" | "KP_Down":
-					self._move_sel(1)
+					s._move_sel(1)
 				case "Prior":
-					self._move_sel(-5)
+					s._move_sel(-5)
 				case "Next":
-					self._move_sel(+5)
+					s._move_sel(+5)
 				case "Return" | "space":
-					if self._has_selection():
+					if s._has_selection():
 						return {
           					"action": "start",
-               				"level": self.levels[self.sel],
-                   			"options": dict(self.options)
+               				"level": s.levels[s.sel],
+                   			"options": dict(s.options)
                       	}
 				case "q" | "Q" | "Escape":
 						return {"action": "quit"}
 
-			self.reload()
+			s.render()
 			return None
 
 		if et == "ClicGauche":
 			x, y = abscisse(ev), ordonnee(ev)
 
 			# click on list elements
-			for idx, r in self.hit_items:
+			for idx, r in s.hit_items:
 				if point_in_rect(x, y, r):
-					self.sel = idx
-					self._ensure_sel_visible()
-					self.reload()
+					s.sel = idx
+					s._ensure_sel_visible()
+					s.render()
 					return None
 
-		# clock on buttons
-		if "btn_play" in self.hit and point_in_rect(x, y, self.hit["btn_play"]):
-			if self._has_selection():
-				return {
-					"action": "start",
-					"level": self.levels[self.sel],
-					"options": dict(self.options)
-				}
-		if "btn_quit" in self.hit and point_in_rect(x, y, self.hit["btn_quit"]):
-			return {"action": "quit"}
+			# clock on buttons
+			if "btn_play" in s.hit and point_in_rect(x, y, s.hit["btn_play"]):
+				if s._has_selection():
+					return {
+						"action": "start",
+						"level": s.levels[s.sel],
+						"options": dict(s.options)
+					}
+			if "btn_quit" in s.hit and point_in_rect(x, y, s.hit["btn_quit"]):
+				return {"action": "quit"}
 
-		# click on checkboxes
-		for key in ("opt_treasures", "opt_dragons_move", "opt_save_enabled"):
-			r = self.hit.get(key)
-			if r and point_in_rect(x, y, r):
-				self._toggle_option(key)
-				return None
+			# click on checkboxes
+			for opt in ("opt_treasures", "opt_dragons_move", "opt_save_enabled"):
+				r = s.hit.get(opt)
+				if r and point_in_rect(x, y, r):
+					s._toggle_option(opt)
+					return None
   
 		return None
 
 	# --------------------------- helpers --------------------------------
-	def _toggle_option(self, key: str) -> None:
-		match key:
-			case "opt_treasures":
-				self.options["treasures"] = not self.options["treasures"]
-			case "opt_dragons_move":
-				self.options["dragons_move"] = not self.options["dragons_move"]
-			case "opt_save_enabled":
-				self.options["save_enabled"] = not self.options["save_enabled"]
+	def _toggle_option(s, key: str) -> None:
+		opt = s.options[key[4:]]
+		opt = not opt
+		s.render()
+	
+	def _has_selection(s) -> bool:
+		return 0 <= s.sel < len(s.levels)
 
-		self.reload()
-
-	def _has_selection(self) -> bool:
-		return 0 <= self.sel < len(self.levels)
-
-	def _move_sel(self, shift: int) -> None:
-		if not self.levels:
-			self.sel = 0
+	def _move_sel(s, shift: int) -> None:
+		if not s.levels:
+			s.sel = 0
 			return
-		self.sel = max(0, min(len(self.levels) - 1, self.sel + shift))
-		self._ensure_sel_visible()
+		s.sel = max(0, min(len(s.levels) - 1, s.sel + shift))
+		s._ensure_sel_visible()
 
-	def _ensure_sel_visible(self) -> None:
+	def _ensure_sel_visible(s) -> None:
 		# держим выбранный элемент в видимой зоне
-		if not self.levels:
-			self.scroll = 0
+		if not s.levels:
+			s.scroll = 0
 			return
 		H = hauteur_fenetre()
 		list_y = PADDING + TITLE_SIZE + SPACER
 		list_h = H - list_y - (PADDING + 160)
 		visible = max(1, list_h // LIST_ITEM_H)
 
-		if self.sel < self.scroll:
-			self.scroll = self.sel
-		elif self.sel >= self.scroll + visible:
-			self.scroll = self.sel - visible + 1
-		self.scroll = max(0, min(self.scroll, max(0, len(self.levels) - visible)))
+		if s.sel < s.scroll:
+			s.scroll = s.sel
+		elif s.sel >= s.scroll + visible:
+			s.scroll = s.sel - visible + 1
+		s.scroll = max(0, min(s.scroll, max(0, len(s.levels) - visible)))
