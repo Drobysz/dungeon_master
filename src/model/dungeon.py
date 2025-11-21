@@ -29,16 +29,18 @@ class Dungeon:
 	def h(s) -> int: return len(s.grid)
 	@property
 	def w(s) -> int: return len(s.grid[0])
-
+	
 	def get_cell(s, r: int, c: int) -> Cell:
-		return s.grid[r][c]
+		if s.in_bound(r, c):
+			return s.grid[r][c]
 
 	def rotate_cell(s, r: int, c: int) -> None:
-		cell = s.grid[r][c]
-		cell = cell.rotate()
+		if s.in_bound(r, c):
+			cell = s.grid[r][c]
+			s.grid[r][c] = cell.rotate()
 
 	def in_bound(s, r: int, c: int) -> bool:
-		return 0 <= r <= s.h and 0 <= c <= s.w
+		return 0 <= r < s.h and 0 <= c < s.w
 
 	def neighbors(s, r: int, c: int) -> Iterable[Tuple[Position, str]]:
 		for dir, (r_shift, c_shift) in DIRECTIONS.items():
@@ -61,6 +63,8 @@ class Dungeon:
   
 		for direction, (shift_row, shift_col) in DIRECTIONS.items():
 			if (shifted_row, shifted_col) == (shift_row, shift_col):
+				if not self.in_bound(row, col) or not self.in_bound(n_row, n_col):
+					return False
 				cell = self.get_cell(row, col)
-				n_cell = self.get_cell(n_row, n_cell)
+				n_cell = self.get_cell(n_row, n_col)
 				return cell.has_dir(direction) and n_cell.has_dir(OPPOSITE[direction])
