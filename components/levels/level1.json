@@ -5,14 +5,14 @@
 		{"row": 5, "col": 0, "level": 1},
 		{"row": 4, "col": 2, "level": 2},
 		{"row": 5, "col": 2, "level": 2},
-		{"row": 4, "col": 5, "level": 3},
+		{"row": 4, "col": 2, "level": 3},
 		{"row": 3, "col": 3, "level": 3}
 	],
 	"grid": [
 		[
 			{ "top": false, "right": true, "bottom": false, "left": true},
 			{ "top": false, "right": false, "bottom": true, "left": false},
-			{ "top": false, "right": false, "bottom": false, "left": false},
+			{ "top": false, "right": true, "bottom": true, "left": false},
 			{ "top": true, "right": false, "bottom": true, "left": false},
 			{ "top": true, "right": false, "bottom": false, "left": true},
 			{ "top": true, "right": true, "bottom": false, "left": false}
