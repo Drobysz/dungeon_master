@@ -1,7 +1,7 @@
 from typing import Tuple, List, Dict
 from pathlib import Path
-from .model.dungeon import Dungeon
-from .model.cell import Cell
+from model.dungeon import Dungeon
+from model.cell import Cell
 import json
 
 GridSrc = List[List[dict]]
@@ -15,13 +15,13 @@ def load_levels(path: str | Path) -> Tuple[Dungeon, Dict, List]:
     for row in grid_src:
         grid.append([
             Cell(
-                north = el["top"],
-                east  = el["right"],
-                south = el["bottom"],
-                west  = el["left"]
+                n = el["top"],
+                e = el["right"],
+                s = el["bottom"],
+                w = el["left"]
             ) for el in row
         ])
-    
+        
     dungeon = Dungeon(grid)
     hero_data = data["hero"]
     hero = {
