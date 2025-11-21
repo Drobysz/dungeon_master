@@ -4,9 +4,9 @@ from pathlib import Path
 
 from load_levels import load_levels
 from model.dungeon import Dungeon
+from model.entities import Hero, Dragon
 
 Position = Tuple[int, int]
-Entity = Dict[str, object]
 Results = Literal["win", "lose", ""]
 
 
@@ -16,8 +16,8 @@ class GameController:
         s.options: Dict = options
 
         s.dungeon: Dungeon | None = None
-        s.hero: Entity | None = None
-        s.dragons: List[Dict] = []
+        s.hero: Hero | None = None
+        s.dragons: List[Dragon] = []
 
         s.game_over: bool = False
         s.game_result: Results = ""
@@ -43,7 +43,7 @@ class GameController:
         if s.dungeon is None:
             return
 
-        if not s.dungeon.in_bounds(row, col):
+        if not s.dungeon.in_bound(row, col):
             return
 
         s.dungeon.rotate_cell(row, col)
