@@ -1,18 +1,22 @@
-class Cell:
-    north: bool; east: bool; south: bool; west: bool
+class Cell: 
+    def __init__(self, n, e, s, w):
+        self.north: bool = n
+        self.east: bool = e
+        self.south: bool = s
+        self.west: bool = w
     
-    def rotate(self) -> "Cell":
+    def rotate(s) -> "Cell":
         return Cell(
-            north = self.west,
-            east = self.north,
-            south = self.east,
-            west = self.south
+            n = s.west,
+            e = s.north,
+            s = s.east,
+            w = s.south
         )
         
-    def has_dir(self, dir: str) -> bool:
+    def has_dir(s, dir: str) -> bool:
         return {
-            "N": self.north,
-            "E": self.east,
-            "S": self.south,
-            "W": self.west
+            "N": s.north,
+            "E": s.east,
+            "S": s.south,
+            "W": s.west
         }[dir]
