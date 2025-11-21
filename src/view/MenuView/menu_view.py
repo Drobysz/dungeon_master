@@ -144,9 +144,9 @@ class MenuView:
 		# control hints
 		hint = (
 			"↑/↓ — choose level   Enter — play   Q — exit\n"
-			"LMC — choose/activate option   PgUp/PgDn — scrolling\n"
+			"LMB — choose/activate option   PgUp/PgDn — scrolling\n"
 			"Control in the game:\n"
-   			"  LMC — cell rotation, Space — move\n"
+   			"  LMB — cell rotation, Space — move\n"
    			"  R — restart, Esc — menu\n"
 		)
 		texte(PADDING, H - 2 * PADDING - 4 * HINT_SIZE, hint, couleur=MUTED, taille=HINT_SIZE)
@@ -261,7 +261,7 @@ class MenuView:
 	# --------------------------- helpers --------------------------------
 	def _toggle_option(s, key: str) -> None:
 		opt = s.options[key[4:]]
-		opt = not opt
+		s.options[key[4:]] = not opt
 		s.render()
 	
 	def _has_selection(s) -> bool:
