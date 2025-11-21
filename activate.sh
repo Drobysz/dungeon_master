@@ -1,28 +1,18 @@
 start() {
 	source dungeon_env/bin/activate
 	export PYTHONPATH="$PYTHONPATH:$(pwd)"
-	python3 main.py
+	python3 src/app.py
 }
 
 clean() {
-	if [ ! -z "$(ls -A "imgs")" ]; then
-		rm imgs/*
-	fi
+	rm -rf */__pycache__
+	rm -rf */*/__pycache__
+	rm -rf */*/*/__pycache__
 }
 
 launch() {
 	clean
-	python3 main.py
-}
-
-reset() {
-	
-}
-
-delete() {
-	clean
-	rm -rf tp2_env
-	rm -rf helpers/__pycache__
+	python3 src/app.py
 }
 
 case "$1" in
@@ -35,18 +25,12 @@ case "$1" in
   launch)
 	launch
 	;;
-  reset)
-    reset
-    ;;
-  delete)
-    delete
-    ;;
   help)
-	echo "Accessible commands: start | launch | clean | reset | delete | help"
+	echo "Accessible commands: start | launch | clean | help"
 	;;
   *)
     echo "Unknown command: $1"
-    echo "Accessible commands: start | launch | clean | reset | delete | help"
+    echo "Accessible commands: start | launch | clean | help"
     exit 1
     ;;
 esac
