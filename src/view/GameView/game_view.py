@@ -95,7 +95,7 @@ class GameView:
         # Game Over overlay
         if self.controller.game_over:
             self._render_game_over_overlay()
-        
+
         mise_a_jour()
 
     def _render_grid(self, dungeon: Dungeon) -> None:
@@ -162,6 +162,15 @@ class GameView:
         texte(x - 5, y - 10, lvl_text, couleur='yellow', taille=font_size)
 
     def _render_entities(self) -> None:
+        for dragon in self.controller.dragons:
+            row, col = dragon["position"]
+            x, y = self._grid_center(row, col)
+            radius = self.cell_size // 3
+            cercle(x, y, radius, remplissage=DRAGON_COLOR, couleur=DRAGON_COLOR)
+        
+            # dragon level
+            self._render_level(str(dragon["level"]), x, y, radius)
+            
         hero = self.controller.hero
         if hero is not None:
             row, col = hero["position"]
@@ -172,15 +181,6 @@ class GameView:
             # hero level
             self._render_level(str(hero["level"]), x, y, radius)
 
-
-        for dragon in self.controller.dragons:
-            row, col = dragon["position"]
-            x, y = self._grid_center(row, col)
-            radius = self.cell_size // 3
-            cercle(x, y, radius, remplissage=DRAGON_COLOR, couleur=DRAGON_COLOR)
-        
-            # dragon level
-            self._render_level(str(dragon["level"]), x, y, radius)
 
     def _render_path(self) -> None:
         path: List[Position] = self.controller.last_path
@@ -249,19 +249,21 @@ class GameView:
             key = touche(ev)
 
             if self.controller.game_over:
-                if key in ("Return", "space", "r", "R"):
-                    return "RESTART"
-                if key == "Escape":
-                    return "TO_MENU"
+                match key:
+                    case "Return" | "space" | "r" | "R":
+                        return "RESTART"
+                    case "Escape":
+                        return "TO_MENU"
                 return None
 
-            if key == "space":
-                return "END_TURN"
-            if key in ("r", "R"):
-                self.controller.reset()
-                return "RESTART"
-            if key == "Escape":
-                return "TO_MENU"
+            match key:
+                case "space":
+                    return "END_TURN"
+                case "r" | "R":
+                    self.controller.reset()
+                    return "RESTART"
+                case "Escape":
+                    return "TO_MENU"
 
             return None
 
