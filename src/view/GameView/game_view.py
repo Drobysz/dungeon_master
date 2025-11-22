@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Optional, Tuple, List
 from .classes import Position
 from .props import *
