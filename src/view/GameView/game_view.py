@@ -157,9 +157,12 @@ class GameView:
                     x_edge = right_x
                     ligne(x_edge, y1, x_edge, y2, couleur=CELL_DOOR, epaisseur=3)
 
-    def _render_level(self, lvl_text, x, y, radius):
+    def _render_level(self, lvl, x, y, radius):
+        padding = 10
         font_size = max(10, radius)
-        texte(x - 5, y - 10, lvl_text, couleur='yellow', taille=font_size)
+        if lvl < 10:
+            padding /= 2
+        texte(x - padding, y - 10, str(lvl), couleur='yellow', taille=font_size)
 
     def _render_entities(self) -> None:
         for dragon in self.controller.dragons:
@@ -169,7 +172,7 @@ class GameView:
             cercle(x, y, radius, remplissage=DRAGON_COLOR, couleur=DRAGON_COLOR)
         
             # dragon level
-            self._render_level(str(dragon["level"]), x, y, radius)
+            self._render_level(dragon["level"], x, y, radius)
             
         hero = self.controller.hero
         if hero is not None:
@@ -179,8 +182,7 @@ class GameView:
             cercle(x, y, radius, remplissage=HERO_COLOR, couleur=HERO_COLOR)
         
             # hero level
-            self._render_level(str(hero["level"]), x, y, radius)
-
+            self._render_level(hero["level"], x, y, radius)
 
     def _render_path(self) -> None:
         path: List[Position] = self.controller.last_path
