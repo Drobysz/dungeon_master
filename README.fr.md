@@ -91,4 +91,6 @@ Exemple:
 ## Membres
 
 - **Alexander Drobyshevski**: développeur principal
+  - [portfolio site](https://drobysz.vercel.app/projects)
+  - [linkedin](https://www.linkedin.com/in/alexander-drobyshevski-9656b2330)
 - **Millan Lechar**: développeur assistant
