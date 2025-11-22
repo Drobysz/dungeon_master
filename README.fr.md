@@ -1,5 +1,5 @@
 # Dungeon Master (Wall is You)
-**__trandlated with Deelp into french__**
+__trandlated with Deelp into french__<br>
 Un projet réalisé dans le cadre du cours BUT Info SAE 101
 
 ## Contenu

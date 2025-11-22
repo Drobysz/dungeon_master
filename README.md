@@ -1,5 +1,5 @@
 # Dungeon Master (Wall is You) 
-**__documentation on original launguage__**
+__documentation on original launguage__<br>
 A project implemented in the frame of BUT Info coursework SAE 101
 
 ## Content
