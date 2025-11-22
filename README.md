@@ -38,6 +38,10 @@ python3 app.py
   - otherwise, the hero dies and the game ends in defeat.
 - The goal is to destroy all the dragons and survive.
 
+> [!WARNING]
+> A corridor in the game is a blue line. From a UI/UX design perspective, this may not be obvious.
+> In next versions of the game this flaw will be rectified.
+
 ## Controls
 
 ```md

@@ -38,6 +38,10 @@ python3 app.py
   - sinon, le héros meurt et le jeu se termine par une défaite.
 - Le but est de détruire tous les dragons et de survivre.
 
+> [!WARNING]
+> Dans le jeu, un couloir est représenté par une ligne bleue. Du point de vue de la conception UI/UX, cela n'est pas forcément évident.
+> Cette imperfection sera corrigée dans les prochaines versions du jeu.
+
 ## Controls
 
 ```md
