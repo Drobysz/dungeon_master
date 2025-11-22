@@ -227,14 +227,17 @@ class GameView:
         result = self.controller.game_result
         if result == "win":
             msg = "Win! All dragons are defeated."
+            padding = 100
         elif result == "lose":
             msg = "Defeat. The hero died."
+            padding = 150
         else:
             msg = "Game Over."
+            padding = 200
 
         texte(width // 2 - 150, height // 2 - 20, msg, couleur=TEXT_COLOR, taille=24)
         texte(
-            width // 2 - 100,
+            width // 2 - padding,
             height // 2 + 20,
             "Enter — restart   Esc — menu",
             couleur=MUTED_COLOR,
