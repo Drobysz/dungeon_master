@@ -5,6 +5,8 @@ from load_levels import load_levels
 from model.dungeon import Dungeon
 from model.entities import Hero, Dragon
 
+from time import sleep
+
 Position = Tuple[int, int]
 Results = Literal["win", "lose", ""]
 
@@ -84,7 +86,7 @@ class GameController:
         return path
 
 
-    def end_turn(s) -> None:
+    def end_turn(s, render) -> None:
         if s.game_over or s.dungeon is None or s.hero is None:
             return
 
@@ -114,6 +116,9 @@ class GameController:
                     s.game_over = True
                     s.game_result = "lose"
                     break
+
+            sleep(0.15)
+            render()
 
         if not s.game_over and not s.dragons:
             s.game_over = True
