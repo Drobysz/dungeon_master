@@ -38,7 +38,7 @@ def main():
                     
                     match action:
                         case "END_TURN":
-                            game.end_turn()
+                            game.end_turn(game_view.render)
                         case "RESTART":
                             game.reset()
                         case "TO_MENU":
