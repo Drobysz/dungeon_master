@@ -25,8 +25,8 @@ python3 app.py
 
 ## Dependencies
 
-- python 3.12
-- university interface library fltk
+- [python 3.12](https://www.python.org/downloads/release/python-31210/)
+- university interface library [fltk](./src/game_engine/fltk.py)
 
 ## Rules of the game
 
