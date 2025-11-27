@@ -275,7 +275,6 @@ class MenuView:
 		s._ensure_sel_visible()
 
 	def _ensure_sel_visible(s) -> None:
-		# держим выбранный элемент в видимой зоне
 		if not s.levels:
 			s.scroll = 0
 			return
