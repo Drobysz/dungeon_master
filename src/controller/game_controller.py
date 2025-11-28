@@ -44,9 +44,6 @@ class GameController:
         if s.dungeon is None:
             return
 
-        if not s.dungeon.in_bound(row, col):
-            return
-
         s.dungeon.rotate_cell(row, col)
 
 
