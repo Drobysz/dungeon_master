@@ -20,7 +20,7 @@ After each dungeon move, the hero automatically follows their “intention” (t
 ## Launch
 
 ```bash
-python3 app.py
+python3 src/app.py
 ```
 
 ## Dependencies
@@ -44,7 +44,6 @@ python3 app.py
 
 ## Controls
 
-```md
 ### In the menu
 
 - `↑/↓` — select level
@@ -63,7 +62,6 @@ After completing the game (victory/defeat):
 
 - `Enter` / `R` — restart the level
 - `Esc` — return to the menu
-```
 
 ## Format of levels
 

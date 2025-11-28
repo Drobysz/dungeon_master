@@ -20,7 +20,7 @@ Après chaque déplacement dans le donjon, le héros suit automatiquement son «
 ## Lancement
 
 ```bash
-python3 app.py
+python3 src/app.py
 ```
 
 ## Dependencies
@@ -44,7 +44,6 @@ python3 app.py
 
 ## Controls
 
-```md
 ### Dans le menu
 
 - `↑/↓` — select level
@@ -63,7 +62,6 @@ Après avoir terminé le jeu (victory/defeat):
 
 - `Enter` / `R` — restart the level
 - `Esc` — return to the menu
-```
 
 ## Format des niveaux
 
