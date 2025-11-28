@@ -128,32 +128,30 @@ class GameView:
                 rectangle(left_x, top_y, right_x, bottom_y, couleur=CELL_BORDER)
 
                 cell = dungeon.get_cell(row, col)
+                
+                x1 = x + half_tile - half_door
+                x2 = x + half_tile + half_door
+
+                y1 = y + half_tile - half_door
+                y2 = y + half_tile + half_door
 
                 # upper edge (North)
                 if cell.north:
-                    x1 = x + half_tile - half_door
-                    x2 = x + half_tile + half_door
                     y_edge = top_y
                     ligne(x1, y_edge, x2, y_edge, couleur=CELL_DOOR, epaisseur=3)
 
                 # lower edge (South)
                 if cell.south:
-                    x1 = x + half_tile - half_door
-                    x2 = x + half_tile + half_door
                     y_edge = bottom_y
                     ligne(x1, y_edge, x2, y_edge, couleur=CELL_DOOR, epaisseur=3)
 
                 # left edge (West)
                 if cell.west:
-                    y1 = y + half_tile - half_door
-                    y2 = y + half_tile + half_door
                     x_edge = left_x
                     ligne(x_edge, y1, x_edge, y2, couleur=CELL_DOOR, epaisseur=3)
 
                 # right edge (East)
                 if cell.east:
-                    y1 = y + half_tile - half_door
-                    y2 = y + half_tile + half_door
                     x_edge = right_x
                     ligne(x_edge, y1, x_edge, y2, couleur=CELL_DOOR, epaisseur=3)
 
