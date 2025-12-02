@@ -215,7 +215,7 @@ class GameView:
         controls = "LMB — rotate cell   Space — move   R — reset   Esc — menu"
         texte(20, height - 60, controls, couleur=MUTED_COLOR, taille=16)
 
-        info = f"Hero level: {hero_level}   Dragons: {dragons_count}   Killed dragons: {killed_dragons}   Steps: {nb_steps}  Shields {shields}"
+        info = f"⚡: {hero_level}      🐲 {dragons_count}      ☠️: {killed_dragons}      👣: {nb_steps}      🛡 {shields}"
         texte(20, height - 35, info, couleur=TEXT_COLOR, taille=18)
 
     def _render_game_over_overlay(self) -> None:
