@@ -6,7 +6,7 @@ from game_engine.fltk import *
 
 _THIS = Path(__file__).resolve()
 _PROJECT_ROOT = _THIS.parents[3]
-LEVELS_DIR = _PROJECT_ROOT / "components" / "levels"
+LEVELS_DIR = _PROJECT_ROOT / "levels"
 
 # ------------------------------ utils -----------------------------------------
 def list_levels() -> List[Path]:
