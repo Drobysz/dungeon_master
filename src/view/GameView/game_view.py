@@ -207,13 +207,15 @@ class GameView:
 
         hero = self.controller.hero
         hero_level = hero["level"] if hero is not None else "?"
+        nb_steps = self.controller.nb_steps
+        killed_dragons = self.controller.killed_dragons
 
         dragons_count = len(self.controller.dragons)
 
         controls = "LMB — rotate cell   Space — move   R — reset   Esc — menu"
         texte(20, height - 60, controls, couleur=MUTED_COLOR, taille=16)
 
-        info = f"Hero level: {hero_level}   Dragons: {dragons_count}"
+        info = f"Hero level: {hero_level}   Dragons: {dragons_count}  Killed dragons: {killed_dragons}   Steps: {nb_steps}"
         texte(20, height - 35, info, couleur=TEXT_COLOR, taille=18)
 
     def _render_game_over_overlay(self) -> None:
