@@ -84,7 +84,8 @@ class GameView:
         self._render_grid(dungeon)
 
         # intention path
-        self._render_path()
+        if not self.controller.is_moving:
+            self._render_path()
 
         # entities
         self._render_entities()
@@ -183,7 +184,7 @@ class GameView:
             self._render_level(hero["level"], x, y, radius)
 
     def _render_path(self) -> None:
-        path: List[Position] = self.controller.last_path
+        path: List[Position] = self.controller.compute_intention_path()
         hero = self.controller.hero
 
         if not path or hero is None:
