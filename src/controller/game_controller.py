@@ -22,7 +22,8 @@ class GameController:
 
         s.game_over: bool = False
         s.game_result: Results = ""
-        s.last_path: List[Position] = []
+        s.next_path: List[Position] = []
+        s.is_moving: bool = False
 
         s._load_level()
 
@@ -53,7 +54,7 @@ class GameController:
         s.rotate_cell(row, col)
 
 
-    def _compute_intention_path(s, max_steps: int = 1000) -> List[Position]:
+    def compute_intention_path(s, max_steps: int = 1000) -> List[Position]:
         if s.dungeon is None or s.hero is None:
             return []
 
@@ -87,10 +88,9 @@ class GameController:
         if s.game_over or s.dungeon is None or s.hero is None:
             return
 
-        path = s._compute_intention_path()
-        s.last_path = path
-
+        path = s.compute_intention_path()
         hero_lvl = s.hero["level"]
+        s.is_moving = True
 
         for step_row, step_col in path:
             s.hero["position"] = [step_row, step_col]
@@ -117,6 +117,8 @@ class GameController:
             sleep(0.15)
             render()
 
+        s.is_moving = False
+    
         if not s.game_over and not s.dragons:
             s.game_over = True
             s.game_result = "win"
