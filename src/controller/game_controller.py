@@ -26,22 +26,25 @@ class GameController:
         s.is_moving: bool = False
         s.nb_steps: int = 0
         s.killed_dragons: int = 0
+        s.shields: int = 0
 
         s._load_level()
 
 
-    
+    @property
+    def nb_dragons(s): return len(s.dragons)
+
 
     def _load_level(s) -> None:
         dungeon, hero, dragons = load_levels(s.level_path)
         s.dungeon = dungeon
         s.hero = hero
         s.dragons = dragons
-        s.nb_dragons = 0
         s.game_over = False
         s.game_result = ""
         s.nb_steps = 0
         s.killed_dragons = 0
+        s.shields = 2
 
     def reset(s) -> None:
         s._load_level()
@@ -116,7 +119,10 @@ class GameController:
                     s.hero["level"] = hero_lvl + dragon_lvl
                     s.dragons.pop(dragon_idx)
                     s.killed_dragons += 1
-
+                
+                elif s.shields > 0:
+                    s.shields -= 1
+                    
                 else:
                     s.game_over = True
                     s.game_result = "lose"
