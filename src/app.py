@@ -1,8 +1,11 @@
 from game_engine.fltk import *
 from typing import Literal
+
 from view.MenuView.menu_view import MenuView
 from view.GameView.game_view import GameView
 from controller.game_controller import GameController
+
+from helpers import list_levels, get_filename
 
 def main():
     state: Literal["MENU", "GAME", "GAME_OVER"] = "MENU"
@@ -10,6 +13,7 @@ def main():
     menu = MenuView()
     game: GameController | None = None
     game_view: GameView | None = None
+    savings = { f.name.split('.')[0]: None for f in list_levels() }
     
     cree_fenetre(width, height, redimension=True)
 
@@ -23,7 +27,16 @@ def main():
 
                 if choice:
                     if choice["action"] == "start":
-                        game = GameController(choice["level"], choice["options"])
+                        lvl = get_filename(choice["level"])
+                        
+                        opt1 = savings[lvl] is not None
+                        opt2 = choice['options']['save_enabled']
+                        
+                        if opt1 and opt2:
+                            game = savings[lvl]
+                        else:
+                            game = GameController(choice["level"], choice["options"])
+                        
                         game_view = GameView(game)
                         state = "GAME"
                     elif choice["action"] == "quit":
@@ -42,7 +55,11 @@ def main():
                         case "RESTART":
                             game.reset()
                         case "TO_MENU":
-                            state = "MENU" 
+                            if game.options['save_enabled']:
+                                lvl = get_filename(game.level_path)
+                                savings[lvl] = None if game.game_over else game
+
+                            state = "MENU"
 
         mise_a_jour()
     
