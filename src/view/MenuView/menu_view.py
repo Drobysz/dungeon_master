@@ -3,20 +3,9 @@ from .classes import *
 from pathlib import Path
 from typing import Dict, List, Optional
 from game_engine.fltk import *
-
-_THIS = Path(__file__).resolve()
-_PROJECT_ROOT = _THIS.parents[3]
-LEVELS_DIR = _PROJECT_ROOT / "levels"
+from helpers import list_levels
 
 # ------------------------------ utils -----------------------------------------
-def list_levels() -> List[Path]:
-    if not LEVELS_DIR.exists():
-        return []
-    files = [p for p in LEVELS_DIR.iterdir()
-             	if p.is_file() and p.suffix.lower() == ".json"]
-    files.sort(key=lambda p: p.name.lower())
-    return files
-
 def point_in_rect(x: int, y: int, r: Coord) -> bool:
     rx, ry, rw, rh = r
     return rx <= x <= rx + rw and ry <= y <= ry + rh
