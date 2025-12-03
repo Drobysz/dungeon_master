@@ -26,7 +26,6 @@ class GameController:
         s.is_moving:       bool = False
         s.dragon_prev_mvs: List[Position | None] = []
         
-        
         s.nb_steps:       int = 0
         s.killed_dragons: int = 0
         s.shields:        int = 0
