@@ -2,7 +2,6 @@ from typing import Optional, Tuple, List
 from .classes import Position
 from .props import *
 from model.dungeon import Dungeon
-from time import sleep
 
 from game_engine.fltk import *
 

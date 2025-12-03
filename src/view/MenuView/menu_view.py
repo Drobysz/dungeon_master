@@ -28,7 +28,7 @@ class MenuView:
 		self.sel:       int = 0
 		self.scroll:    int = 0
 		self.options:   GameProps = {
-			"treasures": False,
+			"treasures":    False,
 			"dragons_move": False,
 			"save_enabled": False,
 		}

@@ -14,22 +14,22 @@ Results = Literal["win", "lose", ""]
 class GameController:
     def __init__(s, level_path: Path, options: Dict) -> None:
         s.level_path: Path = level_path
-        s.options: Dict = options
+        s.options:    Dict = options
 
         s.dungeon: Dungeon | None = None
-        s.hero: Hero | None = None
+        s.hero:    Hero | None = None
         s.dragons: List[Dragon] = []
 
-        s.game_over: bool = False
-        s.game_result: Results = ""
-        s.next_path: List[Position] = []
-        s.is_moving: bool = False
+        s.game_over:       bool = False
+        s.game_result:     Results = ""
+        s.next_path:       List[Position] = []
+        s.is_moving:       bool = False
         s.dragon_prev_mvs: List[Position | None] = []
         
         
-        s.nb_steps: int = 0
+        s.nb_steps:       int = 0
         s.killed_dragons: int = 0
-        s.shields: int = 0
+        s.shields:        int = 0
 
         s._load_level()
 
