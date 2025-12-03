@@ -13,7 +13,7 @@ def main():
     menu = MenuView()
     game: GameController | None = None
     game_view: GameView | None = None
-    savings = { f.name.split('.')[0]: None for f in list_levels() }
+    savings = { get_filename(f): None for f in list_levels() }
     
     cree_fenetre(width, height, redimension=True)
 
