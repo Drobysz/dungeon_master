@@ -24,6 +24,9 @@ class GameController:
         s.game_result: Results = ""
         s.next_path: List[Position] = []
         s.is_moving: bool = False
+        s.dragon_prev_mvs: List[Position | None] = []
+        
+        
         s.nb_steps: int = 0
         s.killed_dragons: int = 0
         s.shields: int = 0
@@ -45,6 +48,7 @@ class GameController:
         s.nb_steps = 0
         s.killed_dragons = 0
         s.shields = 2
+        s.dragon_prev_mvs = [ None for _ in range(len(s.dragons))]
 
     def reset(s) -> None:
         s._load_level()
@@ -63,6 +67,17 @@ class GameController:
         s.rotate_cell(row, col)
 
 
+    def _next_step(s, r: int, c: int, pr: Position | None = None) -> Position | None:
+        for (nbr_r, nbr_c), _ in s.dungeon.neighbors(r, c):
+            if pr is not None and (nbr_r, nbr_c) == pr:
+                continue
+
+            if s.dungeon.are_connected(r, c, nbr_r, nbr_c):
+                return(nbr_r, nbr_c)
+
+        return None
+
+
     def compute_intention_path(s, max_steps: int = 1000) -> List[Position]:
         if s.dungeon is None or s.hero is None:
             return []
@@ -73,14 +88,7 @@ class GameController:
         steps = 0
 
         while steps < max_steps:
-            next_pos: Position | None = None
-
-            for (nbr_row, nbr_col), _ in s.dungeon.neighbors(row, col):
-                if previous is not None and (nbr_row, nbr_col) == previous:
-                    continue
-                if s.dungeon.are_connected(row, col, nbr_row, nbr_col):
-                    next_pos = (nbr_row, nbr_col)
-                    break
+            next_pos: Position | None = s._next_step(row, col, previous)
 
             if next_pos is None:
                 break
@@ -93,31 +101,28 @@ class GameController:
         return path
 
 
-    def end_turn(s, render) -> None:
-        if s.game_over or s.dungeon is None or s.hero is None:
-            return
+    def dragon_move(s) -> None:
+        h_r, h_c = s.hero['position']
+        h_lvl = s.hero['level']
+        
+        for idx, dragon in enumerate(s.dragons):
+            r, c = dragon['position']
+            d_lvl = dragon['level']
+            prev = s.dragon_prev_mvs[idx]
+            next_pos = s._next_step(r, c, prev) if s.options['dragons_move'] else (r, c)
+            
+            if next_pos is None:
+                next_pos = (r, c)
 
-        path = s.compute_intention_path()
-        hero_lvl = s.hero["level"]
-        s.nb_steps += 1
-        s.is_moving = True
+            s.dragons[idx]['position'] = next_pos
 
-        for step_row, step_col in path:
-            s.hero["position"] = [step_row, step_col]
-
-            dragon_idx = None
-            dragon_lvl = 0
-            for idx, dragon in enumerate(s.dragons):
-                d_row, d_col = dragon["position"]
-                if d_row == step_row and d_col == step_col:
-                    dragon_idx = idx
-                    dragon_lvl = int(dragon["level"])
-                    break
-
-            if dragon_idx is not None:
-                if hero_lvl >= dragon_lvl:
-                    s.hero["level"] = hero_lvl + dragon_lvl
-                    s.dragons.pop(dragon_idx)
+            if s.options['dragons_move']:
+                s.dragon_prev_mvs[idx] = (r, c)
+            
+            if next_pos is not None and (next_pos[0] == h_r and next_pos[1] == h_c):
+                if h_lvl >= d_lvl:
+                    s.hero['level'] = h_lvl + d_lvl
+                    s.dragons.pop(idx)
                     s.killed_dragons += 1
                 
                 elif s.shields > 0:
@@ -127,15 +132,24 @@ class GameController:
                     s.game_over = True
                     s.game_result = "lose"
                     break
-
-            sleep(0.15)
-            render()
-
-        s.is_moving = False
-    
+        
         if not s.game_over and not s.dragons:
             s.game_over = True
             s.game_result = "win"
 
-    def is_over(s) -> bool:
-        return s.game_over
+    def end_turn(s, render) -> None:
+        if s.game_over or s.dungeon is None or s.hero is None:
+            return
+
+        path = s.compute_intention_path()
+        s.nb_steps += 1
+        s.is_moving = True
+
+        for step_row, step_col in path:
+            s.hero["position"] = [step_row, step_col]
+
+            sleep(0.3)
+            render()
+
+        s.is_moving = False
+
