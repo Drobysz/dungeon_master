@@ -2,6 +2,7 @@ from typing import Optional, Tuple, List
 from .classes import Position
 from .props import *
 from model.dungeon import Dungeon
+from time import sleep
 
 from game_engine.fltk import *
 
@@ -13,6 +14,7 @@ class GameView:
         self.cell_size = cell_size
         self.margin_x = margin
         self.margin_y = margin
+        self.cntr = 0
 
     # ------------------------ coordinate utilities ------------------------
 
@@ -49,6 +51,12 @@ class GameView:
 
     def render(self) -> None:
         efface_tout()
+        is_moving = self.controller.is_moving
+        
+        self.cntr = self.cntr + 1 if self.cntr < 30 else 0
+    
+        if self.cntr == 0 or is_moving:
+            self.controller.dragon_move()
 
         width = largeur_fenetre()
         height = hauteur_fenetre()
@@ -84,7 +92,7 @@ class GameView:
         self._render_grid(dungeon)
 
         # intention path
-        if not self.controller.is_moving:
+        if not is_moving:
             self._render_path()
 
         # entities
