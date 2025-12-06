@@ -7,12 +7,16 @@ def get_filename(p: Path) -> str:
 
 _THIS = Path(__file__).resolve()
 _PROJECT_ROOT = _THIS.parents[1]
-LEVELS_DIR = _PROJECT_ROOT / "levels"
 
-def list_levels() -> List[Path]:
+def get_complete_path(PATH):
+    return _PROJECT_ROOT / PATH
+
+def list_levels(path = "levels", ext = "json") -> List[Path]:
+    LEVELS_DIR = _PROJECT_ROOT / path
+
     if not LEVELS_DIR.exists():
         return []
     files = [p for p in LEVELS_DIR.iterdir()
-             	if p.is_file() and p.suffix.lower() == ".json"]
+             	if p.is_file() and p.suffix.lower() == "." + ext]
     files.sort(key=lambda p: p.name.lower())
     return files

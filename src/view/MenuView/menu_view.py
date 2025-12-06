@@ -3,7 +3,7 @@ from .classes import *
 from pathlib import Path
 from typing import Dict, List, Optional
 from game_engine.fltk import *
-from helpers import list_levels
+from helpers import list_files
 
 # ------------------------------ utils -----------------------------------------
 def point_in_rect(x: int, y: int, r: Coord) -> bool:
@@ -13,7 +13,7 @@ def point_in_rect(x: int, y: int, r: Coord) -> bool:
 # ------------------------------ MenuView --------------------------------------
 class MenuView:
 	def __init__(self) -> None:
-		self.levels:    List[Path] = list_levels()
+		self.levels:    List[Path] = list_files()
 		self.sel:       int = 0
 		self.scroll:    int = 0
 		self.options:   GameProps = {
