@@ -50,19 +50,22 @@ class GameView:
     def render(self) -> None:
         efface_tout()
 
-        width = largeur_fenetre()
+        ctl = self.controller
+        ctl.ticking(self.render)
+
+        width  = largeur_fenetre()
         height = hauteur_fenetre()
 
         # background
         rectangle(0, 0, width, height, remplissage=BACKGROUND, couleur=BACKGROUND)
 
-        dungeon = self.controller.dungeon
+        dungeon = ctl.dungeon
         if dungeon is None:
             texte(20, 20, "No loaded level", couleur=TEXT_COLOR, taille=20)
             return
 
         # frame under field
-        grid_width = dungeon.w * self.cell_size
+        grid_width  = dungeon.w * self.cell_size
         grid_height = dungeon.h * self.cell_size
         rectangle(
             self.margin_x - 6,
@@ -84,7 +87,7 @@ class GameView:
         self._render_grid(dungeon)
 
         # intention path
-        if not self.controller.is_moving:
+        if not ctl.is_moving:
             self._render_path()
 
         # entities
@@ -94,7 +97,7 @@ class GameView:
         self._render_hud()
 
         # Game Over overlay
-        if self.controller.game_over:
+        if ctl.game_over:
             self._render_game_over_overlay()
 
         mise_a_jour()
@@ -108,7 +111,7 @@ class GameView:
 
         # length of the door segment along the side of the cage
         door_length = int(tile_size * 0.6)
-        half_door = door_length // 2
+        half_door   = door_length // 2
 
         for row in range(dungeon.h):
             for col in range(dungeon.w):
@@ -120,9 +123,9 @@ class GameView:
                 x = base_x + gap // 2
                 y = base_y + gap // 2
 
-                left_x = x
-                right_x = x + tile_size
-                top_y = y
+                left_x   = x
+                right_x  = x + tile_size
+                top_y    = y
                 bottom_y = y + tile_size
 
                 # specific cell frame
@@ -156,32 +159,63 @@ class GameView:
                     x_edge = right_x
                     ligne(x_edge, y1, x_edge, y2, couleur=CELL_DOOR, epaisseur=3)
 
-    def _render_level(self, lvl, x, y, radius):
-        padding = 10
-        font_size = max(10, radius)
-        if lvl < 10:
-            padding /= 2
-        texte(x - padding, y - 10, str(lvl), couleur='yellow', taille=font_size)
+    def _render_level(self, lvl, x, y, fs):
+        padding = 5
+        fs = max(10, fs)
+        
+        texte(
+            x + 2 * padding,
+            y + padding,
+            str(lvl),
+            couleur='yellow',
+            taille=fs
+        )
 
     def _render_entities(self) -> None:
-        for dragon in self.controller.dragons:
-            row, col = dragon["position"]
-            x, y = self._grid_center(row, col)
-            radius = self.cell_size // 3
-            cercle(x, y, radius, remplissage=DRAGON_COLOR, couleur=DRAGON_COLOR)
+        ctl = self.controller
+        frame_nb = ctl.get_dragon_frame()
+        
+        for idx, dragon in enumerate(self.controller.dragons):
+            row, col   = dragon["position"]
+            c_x, c_y   = self._grid_center(row, col)
+            tl_x, tl_y = self._grid_to_pixel(row, col)
+            
+            frames = ctl.dragon_frames[dragon["level"]]
+            frame = frames[frame_nb]
+
+            image(
+                c_x, c_y,
+                frame,
+                largeur=32,
+                hauteur=32,
+                ancrage="center",
+                tag=f"dragon {idx + 1}"
+            )
         
             # dragon level
-            self._render_level(dragon["level"], x, y, radius)
-            
+            self._render_level(dragon["level"], tl_x, tl_y, self.cell_size // 3)
+
+
         hero = self.controller.hero
         if hero is not None:
-            row, col = hero["position"]
-            x, y = self._grid_center(row, col)
-            radius = self.cell_size // 3
-            cercle(x, y, radius, remplissage=HERO_COLOR, couleur=HERO_COLOR)
+            row, col   = hero["position"]
+            c_x, c_y   = self._grid_center(row, col)
+            tl_x, tl_y = self._grid_to_pixel(row, col)
+            
+            fs    = self.cell_size // 3
+            frame = ctl.get_hero_frame()
+            
+            image(
+                c_x, c_y,
+                frame,
+                largeur=32,
+                hauteur=32,
+                ancrage="center",
+                tag=f"hero"
+            )
         
             # hero level
-            self._render_level(hero["level"], x, y, radius)
+            self._render_level(hero["level"], tl_x, tl_y, fs)
 
     def _render_path(self) -> None:
         path: List[Position] = self.controller.compute_intention_path()
@@ -219,7 +253,7 @@ class GameView:
         texte(20, height - 35, info, couleur=TEXT_COLOR, taille=18)
 
     def _render_game_over_overlay(self) -> None:
-        width = largeur_fenetre()
+        width  = largeur_fenetre()
         height = hauteur_fenetre()
 
         # translucent rectangle
@@ -256,7 +290,7 @@ class GameView:
 
             if self.controller.game_over:
                 match key:
-                    case "Return" | "space" | "r" | "R":
+                    case "Return" | "r" | "R":
                         return "RESTART"
                     case "Escape":
                         return "TO_MENU"
