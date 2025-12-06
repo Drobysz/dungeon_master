@@ -11,7 +11,7 @@ _PROJECT_ROOT = _THIS.parents[1]
 def get_complete_path(PATH):
     return _PROJECT_ROOT / PATH
 
-def list_levels(path = "levels", ext = "json") -> List[Path]:
+def list_files(path = "levels", ext = "json") -> List[Path]:
     LEVELS_DIR = _PROJECT_ROOT / path
 
     if not LEVELS_DIR.exists():
