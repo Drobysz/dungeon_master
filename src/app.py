@@ -5,7 +5,7 @@ from view.MenuView.menu_view import MenuView
 from view.GameView.game_view import GameView
 from controller.game_controller import GameController
 
-from helpers import list_levels, get_filename
+from helpers import list_files, get_filename
 
 def main():
     state: Literal["MENU", "GAME", "GAME_OVER"] = "MENU"
@@ -13,7 +13,7 @@ def main():
     menu = MenuView()
     game: GameController | None = None
     game_view: GameView | None = None
-    savings = { get_filename(f): None for f in list_levels() }
+    savings = { get_filename(f): None for f in list_files() }
     
     cree_fenetre(width, height, redimension=True)
 
