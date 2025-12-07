@@ -31,12 +31,12 @@ def load_levels(path: str | Path) -> Tuple[Dungeon, Dict, List]:
     hero_data = data["hero"]
     hero = {
         "level": hero_data["level"],
-        "position": [hero_data["row"], hero_data["col"]]
+        "position": (hero_data["row"], hero_data["col"])
     }
     dragons = [
         {
             "level": el["level"],
-            "position": [el["row"], el["col"]]
+            "position": (el["row"], el["col"])
         }
         for el in data["dragons"]
     ]
