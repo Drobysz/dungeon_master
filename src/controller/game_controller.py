@@ -1,22 +1,22 @@
-from typing import Dict, List, Tuple, Literal
+from typing import Dict, List
 from pathlib import Path
+from .classes import *
 
-from load_levels import load_levels
 from model.dungeon import Dungeon
 from model.entities import Hero, Dragon
 
+from load_levels import load_levels
 from helpers import \
     list_files, \
     get_complete_path
 
-Position = Tuple[int, int]
-Animations = Literal["attack", "shield", "walk", "none"]
-Results = Literal["win", "lose", ""]
 
 
 class GameController:
     def __init__(s, level_path: Path, options: Dict) -> None:
         s.level_path: Path = level_path
+        s._next_path: Hero_Path = []
+        s._pathes:    Pathes = []
         s.options:    Dict = options
 
         s.dungeon: Dungeon | None = None
@@ -25,7 +25,6 @@ class GameController:
 
         s.game_over:       bool = False
         s.game_result:     Results = ""
-        s.next_path:       List[Position] = []
         s.dragon_prev_mvs: List[Position | None] = []
         
         s.nb_steps:       int = 0
@@ -142,6 +141,21 @@ class GameController:
     def is_moving(s, state):
         s.walking_tick = 0
         s._is_moving = state
+    
+    @property
+    def pathes(s) -> Pathes:
+        hero_pos = s.hero['position']
+        coords = s._next_steps(pos=hero_pos)
+        
+        if not coords:
+            return []
+        
+        new_pathes = [[hero_pos, crd] for crd in coords]
+        return s._compute_pathes(new_pathes)
+    
+    @property
+    def next_path(s) -> Hero_Path:
+        return s._detect_priority_path()
         
 
     def get_hero_frame(s) -> Path | str:
@@ -174,41 +188,81 @@ class GameController:
         s.rotate_cell(row, col)
 
 
-    def _next_step(s, r: int, c: int, pr: Position | None = None) -> Position | None:
+    def _next_steps(
+        s,
+        pos:   Position,
+        prev:  Position | None = None,
+        first: bool = False
+    ) -> List[Position] | None:
+        stack = []
+        r, c = pos
+        
         for (nbr_r, nbr_c), _ in s.dungeon.neighbors(r, c):
-            if pr is not None and (nbr_r, nbr_c) == pr:
+            if prev is not None and (nbr_r, nbr_c) == prev:
                 continue
 
             if s.dungeon.are_connected(r, c, nbr_r, nbr_c):
-                return(nbr_r, nbr_c)
+                if first:
+                    return (nbr_r, nbr_c)
+                else:
+                    stack.append((nbr_r, nbr_c))
 
-        return None
-
-
-    def compute_intention_path(s, max_steps: int = 1000) -> List[Position]:
-        if s.dungeon is None or s.hero is None:
-            return []
-
-        row, col = s.hero["position"]
-        path: List[Position] = []
-        previous: Position | None = None
-        steps = 0
-
-        while steps < max_steps:
-            next_pos: Position | None = s._next_step(row, col, previous)
-
-            if next_pos is None:
-                break
-
-            path.append(next_pos)
-            previous = (row, col)
-            row, col = next_pos
-            steps += 1
-
-        return path
+        return None if first else stack
 
 
-    def detect_clash_and_winner(s, render):
+    def _compute_pathes(s, pathes) -> Pathes:
+        new_pathes = []
+        n = len(pathes)
+        cntr = 0
+        
+        for p in pathes:
+            coords = s._next_steps(pos=p[-1], prev=p[-2])
+            
+            if coords:
+                new_pathes += [p + [crd] for crd in coords]
+            else:
+                cntr += 1
+                new_pathes.append(p)
+            
+        if new_pathes and cntr < n:
+            return s._compute_pathes(new_pathes)
+        
+        return pathes
+         
+
+    def _define_dragon_on_path(s, p: Hero_Path):
+        path_dragons = []
+        
+        for crd in p:
+            for dragon in s.dragons:
+                if dragon['position'] == crd:
+                    path_dragons.append(dragon)
+        
+        if not path_dragons:
+            return {'level': 0}
+        
+        path_dragons.sort(key=lambda data: data['level'])
+
+        return path_dragons[-1]
+
+
+    def _detect_priority_path(s):
+        dragons_on_pathes = [
+            {
+                'dragon': s._define_dragon_on_path(p),
+                'path': p
+            } for p in s.pathes
+        ]
+        
+        if not dragons_on_pathes:
+            return dragons_on_pathes
+        
+        dragons_on_pathes.sort(key=lambda data: data['dragon']['level'])
+        
+        return dragons_on_pathes[-1]['path']
+
+
+    def _detect_clash_and_winner(s, render):
         h_r, h_c = s.hero['position']
         h_lvl = s.hero['level']
     
@@ -253,16 +307,16 @@ class GameController:
                     break
                 
 
-    def dragon_move(s) -> None:
+    def _dragon_move(s) -> None:
         for idx, dragon in enumerate(s.dragons):
             if s.encountered_dragon is not None\
                 and s.encountered_dragon == idx:
                     continue
             
-            r, c = dragon['position']
+            (r, c) = dragon['position']
             prev = s.dragon_prev_mvs[idx]
 
-            dragon['position'] = s._next_step(r, c, prev)
+            dragon['position'] = s._next_steps((r, c), prev, first=True)
             if dragon['position'] is not None:
                 s.dragon_prev_mvs[idx] = (r, c)
             else:
@@ -288,10 +342,10 @@ class GameController:
         if s.game_over or s.dungeon is None or s.hero is None:
             return
 
-        path = s.compute_intention_path()
+        path = s.next_path
 
         for step_row, step_col in path:
-            s.hero["position"] = [step_row, step_col]
+            s.hero["position"] = (step_row, step_col)
             s.walking_tick = 0
 
             while s.walking_tick <= 30:
@@ -303,10 +357,10 @@ class GameController:
         s.dragon_tick = (s.dragon_tick + 1) % 30
         
         if not s.in_clash and not s.game_over:
-            s.detect_clash_and_winner(render)
+            s._detect_clash_and_winner(render)
     
         if s.tick % 30 == 0 and s.options['dragons_move']:
-            s.dragon_move()
+            s._dragon_move()
         
         if s.is_moving:
             s.walking_tick += 1
