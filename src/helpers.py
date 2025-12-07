@@ -47,7 +47,7 @@ def list_files(path = "levels", ext = "json") -> List[Path]:
     return files
 
 
-def get_content_from_file(path: Path):
+def get_content_from_file(path: Path) -> str:
     f = open(path, 'r')
     content = f.read()
     f.close()
