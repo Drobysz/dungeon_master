@@ -175,8 +175,8 @@ class GameView:
         ctl = self.controller
         frame_nb = ctl.get_dragon_frame()
         
-        for idx, dragon in enumerate(self.controller.dragons):
-            row, col   = dragon["position"]
+        for idx, dragon in enumerate(ctl.dragons):
+            (row, col) = dragon["position"]
             c_x, c_y   = self._grid_center(row, col)
             tl_x, tl_y = self._grid_to_pixel(row, col)
             
@@ -198,7 +198,7 @@ class GameView:
 
         hero = self.controller.hero
         if hero is not None:
-            row, col   = hero["position"]
+            (row, col)   = hero["position"]
             c_x, c_y   = self._grid_center(row, col)
             tl_x, tl_y = self._grid_to_pixel(row, col)
             
@@ -218,7 +218,8 @@ class GameView:
             self._render_level(hero["level"], tl_x, tl_y, fs)
 
     def _render_path(self) -> None:
-        path: List[Position] = self.controller.compute_intention_path()
+        ctl = self.controller
+        path: List[Position] = ctl.next_path
         hero = self.controller.hero
 
         if not path or hero is None:
