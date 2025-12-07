@@ -198,7 +198,7 @@ class GameView:
 
         hero = self.controller.hero
         if hero is not None:
-            (row, col)   = hero["position"]
+            (row, col) = hero["position"]
             c_x, c_y   = self._grid_center(row, col)
             tl_x, tl_y = self._grid_to_pixel(row, col)
             
