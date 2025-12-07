@@ -1,26 +1,31 @@
 from typing import Tuple, List, Dict
 from pathlib import Path
+
 from model.dungeon import Dungeon
 from model.cell import Cell
+
 import json
+from helpers import get_filename, get_complete_path, convert_map
 
 GridSrc = List[List[dict]]
 Grid = List[List[Cell]]
 
 def load_levels(path: str | Path) -> Tuple[Dungeon, Dict, List]:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
-    grid_src: GridSrc = data["grid"]
-    grid: Grid = []
-    
-    for row in grid_src:
-        grid.append([
+    lvl_name = get_filename(path)
+    map_path = get_complete_path(f"levels/{lvl_name}.txt")
+    grid_src: GridSrc = convert_map(map_path)
+
+    grid: Grid = [
+        [
             Cell(
                 n = el["top"],
                 e = el["right"],
                 s = el["bottom"],
                 w = el["left"]
             ) for el in row
-        ])
+        ] for row in grid_src
+    ]
         
     dungeon = Dungeon(grid)
     hero_data = data["hero"]
