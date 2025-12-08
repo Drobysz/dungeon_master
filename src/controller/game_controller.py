@@ -3,7 +3,7 @@ from pathlib import Path
 from .classes import *
 
 from model.dungeon import Dungeon
-from model.entities import Hero, Dragon
+from model.entities import Hero, Dragon, Diamonds
 
 from load_levels import load_levels
 from helpers import \
@@ -19,9 +19,10 @@ class GameController:
         s._pathes:    Pathes = []
         s.options:    Dict = options
 
-        s.dungeon: Dungeon | None = None
-        s.hero:    Hero | None = None
-        s.dragons: List[Dragon] = []
+        s.dungeon:  Dungeon | None = None
+        s.hero:     Hero | None = None
+        s.dragons:  List[Dragon] = []
+        s.diamonds: Diamonds = {}
 
         s.game_over:       bool = False
         s.game_result:     Results = ""
@@ -51,18 +52,18 @@ class GameController:
 
 
     def _load_level(s) -> None:
-        dungeon, hero, dragons = load_levels(s.level_path)
-        s.dungeon = dungeon
-        s.hero    = hero
-        s.dragons = dragons
+        dungeon, hero, dragons, diamonds = load_levels(s.level_path)
+        s.dungeon  = dungeon
+        s.hero     = hero
+        s.dragons  = dragons
+        s.diamonds = diamonds
 
         s.game_over = False
         s.game_result = ""
+        
         s.nb_steps = 0
         s.killed_dragons = 0
         s.shields = 2
-        s.is_moving = False
-        s.dragon_prev_mvs = [None for _ in range(len(s.dragons))]
         
         s.tick = 0
         s.dragon_tick = 0 
@@ -76,6 +77,7 @@ class GameController:
             )
             for idx in range(8)
         ]
+        s.dragon_prev_mvs = [None for _ in range(len(s.dragons))]
         s.dragron_frame_nb = 0
         s.encountered_dragon = None
         
@@ -90,7 +92,8 @@ class GameController:
         s.hero_frame_nb = "none"
         
         s.in_clash = False
-        
+        s.is_moving = False
+
         
     def reset(s) -> None:
         s._load_level()
@@ -144,13 +147,13 @@ class GameController:
     
     @property
     def pathes(s) -> Pathes:
-        hero_pos = s.hero['position']
-        coords = s._next_steps(pos=hero_pos)
+        h_pos = s.hero['position']
+        coords = s._next_steps(h_pos)
         
         if not coords:
             return []
         
-        new_pathes = [[hero_pos, crd] for crd in coords]
+        new_pathes = [[h_pos, crd] for crd in coords]
         return s._compute_pathes(new_pathes)
     
     @property
@@ -210,13 +213,13 @@ class GameController:
         return None if first else stack
 
 
-    def _compute_pathes(s, pathes) -> Pathes:
+    def _compute_pathes(s, pathes: Pathes) -> Pathes:
         new_pathes = []
         n = len(pathes)
         cntr = 0
         
         for p in pathes:
-            coords = s._next_steps(pos=p[-1], prev=p[-2])
+            coords = s._next_steps(p[-1], p[-2])
             
             if coords:
                 new_pathes += [p + [crd] for crd in coords]
@@ -227,6 +230,9 @@ class GameController:
         if new_pathes and cntr < n:
             return s._compute_pathes(new_pathes)
         
+        for i in range(n):
+            pathes[i].pop(0)
+        
         return pathes
          
 
@@ -234,6 +240,9 @@ class GameController:
         path_dragons = []
         
         for crd in p:
+            if s._check_diamonds(crd):
+                return {'level': 100}
+            
             for dragon in s.dragons:
                 if dragon['position'] == crd:
                     path_dragons.append(dragon)
@@ -324,6 +333,23 @@ class GameController:
                 s.dragon_prev_mvs[idx] = None
 
 
+    def _check_diamonds(
+        s,
+        pos: Position,
+        delete = False
+    ) -> bool:
+        if not pos:
+            return False
+        
+        for idx, diamond_pos in enumerate(s.diamonds["positions"]):
+            if pos == diamond_pos:
+                
+                if delete:
+                    del s.diamonds["positions"][idx]
+                return True
+
+        return False
+
     def anim_exec(func):
         def wrapper(s: "GameController", *args, **kwargs):
             s.nb_steps += 1
@@ -345,11 +371,16 @@ class GameController:
         path = s.next_path
 
         for step_row, step_col in path:
-            s.hero["position"] = (step_row, step_col)
+            h_pos = s.hero["position"] = (step_row, step_col)
             s.walking_tick = 0
+            
+            is_diamond = s._check_diamonds(h_pos, delete=True)
 
             while s.walking_tick <= 30:
                 render()
+                
+            if is_diamond:
+                break
 
 
     def ticking(s, render):
