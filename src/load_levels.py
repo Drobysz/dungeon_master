@@ -3,14 +3,18 @@ from pathlib import Path
 
 from model.dungeon import Dungeon
 from model.cell import Cell
+from model.entities import Hero, Dragon, Diamonds
 
 import json
-from helpers import get_filename, get_complete_path, convert_map
+from helpers import\
+    get_filename,\
+    get_complete_path,\
+    convert_map
 
 GridSrc = List[List[dict]]
 Grid = List[List[Cell]]
 
-def load_levels(path: str | Path) -> Tuple[Dungeon, Dict, List]:
+def load_levels(path: str | Path) -> Tuple[Dungeon, Hero, List[Dragon], Diamonds]:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     lvl_name = get_filename(path)
     map_path = get_complete_path(f"levels/{lvl_name}.txt")
@@ -41,5 +45,12 @@ def load_levels(path: str | Path) -> Tuple[Dungeon, Dict, List]:
         for el in data["dragons"]
     ]
     
-    return dungeon, hero, dragons
+    diamonds = {
+        "positions": [],
+        "nb": 2,
+        "isActivated": False,
+        "img": get_complete_path("assets/diamond.png")
+    }
+    
+    return dungeon, hero, dragons, diamonds
     
