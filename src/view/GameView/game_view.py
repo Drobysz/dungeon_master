@@ -95,6 +95,9 @@ class GameView:
 
         # HUD
         self._render_hud()
+        
+        # diamond modal window
+        self._render_diamond_modal_window()
 
         # Game Over overlay
         if ctl.game_over:
@@ -194,9 +197,22 @@ class GameView:
         
             # dragon level
             self._render_level(dragon["level"], tl_x, tl_y, self.cell_size // 3)
+        
+        for idx, d_crd in enumerate(ctl.diamonds["positions"]):
+            (row, col) = d_crd
+            c_x, c_y   = self._grid_center(row, col)
+            img        = ctl.diamonds["img"]
+            
+            image(
+                c_x, c_y,
+                img,
+                largeur=32,
+                hauteur=32,
+                ancrage="center",
+                tag=f"diamond {idx + 1}"
+            )
 
-
-        hero = self.controller.hero
+        hero = ctl.hero
         if hero is not None:
             (row, col) = hero["position"]
             c_x, c_y   = self._grid_center(row, col)
@@ -211,7 +227,7 @@ class GameView:
                 largeur=32,
                 hauteur=32,
                 ancrage="center",
-                tag=f"hero"
+                tag="hero"
             )
         
             # hero level
@@ -242,16 +258,39 @@ class GameView:
 
         hero = self.controller.hero
         hero_level = hero["level"] if hero is not None else "?"
-        cntrl = self.controller
-        nb_steps, killed_dragons, shields = cntrl.nb_steps, cntrl.killed_dragons, cntrl.shields
+        ctl = self.controller
+        nb_steps, killed_dragons, shields, diamonds = ctl.nb_steps, ctl.killed_dragons, ctl.shields, ctl.diamonds["nb"]
 
-        dragons_count = cntrl.nb_dragons
+        dragons_count = ctl.nb_dragons
 
-        controls = "LMB — rotate cell   Space — move   R — reset   Esc — menu"
+        controls = "LMB — rotate cell   Space — move   R — reset   Esc — menu   D - diamonds mode"
         texte(20, height - 60, controls, couleur=MUTED_COLOR, taille=16)
 
-        info = f"⚡: {hero_level}      🐲 {dragons_count}      ☠️: {killed_dragons}      👣: {nb_steps}      🛡 {shields}"
+        info = f"⚡: {hero_level}      🐲: {dragons_count}      ☠️: {killed_dragons}      👣: {nb_steps}      🛡: {shields}      💎: {diamonds}"
         texte(20, height - 35, info, couleur=TEXT_COLOR, taille=18)
+
+    def _render_diamond_modal_window(self) -> None:
+        width, height = largeur_fenetre(), hauteur_fenetre()
+        x, y = width - 50, height - 60
+        diamonds = self.controller.diamonds
+        
+        
+        color = POSITIVE if diamonds["isActivated"] else NEGATIVE
+        
+        rectangle(
+            x, y,
+            x + 30, y + 30,
+            couleur=color
+        )
+        
+        image(
+            x + 15, y + 15,
+            diamonds["img"],
+            largeur=20,
+            hauteur=20,
+            ancrage="center",
+            tag="hero"
+        )     
 
     def _render_game_over_overlay(self) -> None:
         width  = largeur_fenetre()
@@ -285,11 +324,13 @@ class GameView:
     def handle_event(self, ev, ev_type: str):
         if ev_type is None:
             return None
+        
+        ctl = self.controller
 
         if ev_type == "Touche":
             key = touche(ev)
 
-            if self.controller.game_over:
+            if ctl.game_over:
                 match key:
                     case "Return" | "r" | "R":
                         return "RESTART"
@@ -301,10 +342,12 @@ class GameView:
                 case "space":
                     return "END_TURN"
                 case "r" | "R":
-                    self.controller.reset()
+                    ctl.reset()
                     return "RESTART"
                 case "Escape":
                     return "TO_MENU"
+                case "d" | "D":
+                    ctl.diamonds["isActivated"] = not ctl.diamonds["isActivated"]
 
             return None
 
@@ -313,9 +356,16 @@ class GameView:
             y = ordonnee(ev)
 
             grid_pos = self._pixel_to_grid(x, y)
+            diamonds = ctl.diamonds
+            
             if grid_pos is not None:
                 row, col = grid_pos
-                self.controller.rotate_cell(row, col)
+                
+                if diamonds["isActivated"] and diamonds["nb"] > 0:
+                    diamonds["positions"].append((row, col))
+                    diamonds["nb"] -= 1
+                else:
+                    ctl.rotate_cell(row, col)
         
         self.render()
         return None
