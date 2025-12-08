@@ -32,7 +32,7 @@ def get_filename(p: Path) -> str:
     return p.name.split('.')[0]
 
 
-def get_complete_path(PATH):
+def get_complete_path(PATH) -> Path:
     return _PROJECT_ROOT / PATH
 
 
