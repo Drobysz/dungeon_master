@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, List
+from pathlib import Path
 
 Pos = Tuple[int, int]
 
@@ -12,3 +13,10 @@ class Hero:
 class Dragon:
     positon: Pos
     level: int
+    
+@dataclass
+class Diamonds:
+    positions: List[Pos]
+    nb: int
+    isActivated: bool
+    img: Path
